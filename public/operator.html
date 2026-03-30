@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THE FLOOR — Operator Console</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=IBM+Plex+Sans:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #07090c;
+    color: #d0d4dc;
+    font-family: 'IBM Plex Sans', sans-serif;
+    min-height: 100vh;
+    padding: 1.5rem;
+  }
+
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #1a1e28;
+  }
+
+  .header h1 {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.1rem;
+    color: #00ff88;
+    letter-spacing: 0.1em;
+  }
+
+  .header .status-badge {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    padding: 0.3rem 0.8rem;
+    border-radius: 4px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .status-waiting { background: #1a1e28; color: #6b7280; }
+  .status-pre-game { background: #1a2a1a; color: #4ade80; }
+  .status-live { background: #2a1a1a; color: #ff4444; border: 1px solid #ff4444; animation: pulse-border 1s ease-in-out infinite; }
+  .status-paused { background: #2a2a1a; color: #fbbf24; }
+  .status-settled { background: #1a1a2a; color: #818cf8; }
+
+  @keyframes pulse-border { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+  /* ── SETUP PANEL ── */
+  .setup-panel {
+    background: #0d1017;
+    border: 1px solid #1a1e28;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .setup-panel h2 {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.8rem;
+    color: #6b7280;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+
+  .setup-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .setup-field label {
+    display: block;
+    font-size: 0.7rem;
+    color: #6b7280;
+    margin-bottom: 0.3rem;
+    letter-spacing: 0.05em;
+  }
+
+  .setup-field input {
+    width: 100%;
+    background: #141820;
+    border: 1px solid #1e2430;
+    border-radius: 6px;
+    color: #f0f2f5;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+    padding: 0.5rem 0.7rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .setup-field input:focus { border-color: #00ff88; }
+
+  .setup-actions {
+    display: flex;
+    gap: 0.8rem;
+    margin-top: 1rem;
+  }
+
+  .btn-setup {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    padding: 0.5rem 1.2rem;
+    border: 1px solid #1e2430;
+    border-radius: 6px;
+    background: #141820;
+    color: #d0d4dc;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: all 0.2s;
+  }
+
+  .btn-setup:hover { border-color: #00ff88; color: #00ff88; }
+
+  /* ── SCOREBOARD ── */
+  .scoreboard {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 1rem;
+    background: #0d1017;
+    border: 1px solid #1a1e28;
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .player-side {
+    text-align: center;
+  }
+
+  .player-name {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.85rem;
+    color: #6b7280;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+
+  .player-score {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 5rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .score-a { color: #00ff88; }
+  .score-b { color: #ff3366; }
+
+  .score-divider {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .vs {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.2rem;
+    color: #3a3f4b;
+  }
+
+  .timer-display {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #f0f2f5;
+  }
+
+  .timer-display.warning { color: #fbbf24; }
+  .timer-display.critical { color: #ff4444; animation: pulse-border 0.5s ease-in-out infinite; }
+
+  .fair-value-display {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1rem;
+    color: #818cf8;
+    margin-top: 0.5rem;
+  }
+
+  /* ── HOTKEYS ── */
+  .hotkeys {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0.8rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .hotkey-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.2rem;
+    border-radius: 10px;
+    border: 2px solid #1e2430;
+    background: #0d1017;
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+  }
+
+  .hotkey-btn:active, .hotkey-btn.pressed {
+    transform: scale(0.96);
+  }
+
+  .hotkey-btn .key {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.4rem;
+    font-weight: 700;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #3a3f4b;
+    border-radius: 6px;
+    background: #141820;
+    margin-bottom: 0.5rem;
+  }
+
+  .hotkey-btn .action {
+    font-size: 0.75rem;
+    color: #6b7280;
+    letter-spacing: 0.05em;
+  }
+
+  .hk-goal-a { border-color: #0a3d22; }
+  .hk-goal-a:hover, .hk-goal-a.pressed { border-color: #00ff88; background: rgba(0,255,136,0.06); }
+  .hk-goal-a .key { color: #00ff88; }
+
+  .hk-goal-b { border-color: #3d0a1a; }
+  .hk-goal-b:hover, .hk-goal-b.pressed { border-color: #ff3366; background: rgba(255,51,102,0.06); }
+  .hk-goal-b .key { color: #ff3366; }
+
+  .hk-start { border-color: #0a2a3d; }
+  .hk-start:hover, .hk-start.pressed { border-color: #38bdf8; background: rgba(56,189,248,0.06); }
+  .hk-start .key { color: #38bdf8; }
+
+  .hk-pause { border-color: #3d2a0a; }
+  .hk-pause:hover, .hk-pause.pressed { border-color: #fbbf24; background: rgba(251,191,36,0.06); }
+  .hk-pause .key { color: #fbbf24; }
+
+  .hk-undo { border-color: #2a2a2a; }
+  .hk-undo:hover, .hk-undo.pressed { border-color: #a78bfa; background: rgba(167,139,250,0.06); }
+  .hk-undo .key { color: #a78bfa; }
+
+  .hk-reset { border-color: #2a2a2a; }
+  .hk-reset:hover, .hk-reset.pressed { border-color: #6b7280; background: rgba(107,114,128,0.06); }
+  .hk-reset .key { color: #6b7280; }
+
+  /* ── EVENT LOG ── */
+  .event-log {
+    background: #0d1017;
+    border: 1px solid #1a1e28;
+    border-radius: 10px;
+    padding: 1rem;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+
+  .event-log h3 {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: #6b7280;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+
+  .event-item {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    padding: 0.3rem 0;
+    border-bottom: 1px solid #0f1219;
+    display: flex;
+    gap: 0.8rem;
+  }
+
+  .event-time { color: #3a3f4b; min-width: 50px; }
+  .event-desc { color: #d0d4dc; }
+
+  /* ── CONNECTED TRADERS ── */
+  .traders-panel {
+    background: #0d1017;
+    border: 1px solid #1a1e28;
+    border-radius: 10px;
+    padding: 1rem;
+    margin-top: 1rem;
+  }
+
+  .traders-panel h3 {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: #6b7280;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+
+  .trader-row {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    padding: 0.25rem 0;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .trader-row .name { color: #d0d4dc; }
+  .trader-row .pnl-pos { color: #00ff88; }
+  .trader-row .pnl-neg { color: #ff3366; }
+  .trader-row .pnl-zero { color: #6b7280; }
+
+  /* ── FLASH OVERLAY ── */
+  .flash-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.1s;
+  }
+
+  .flash-overlay.flash-a { background: rgba(0,255,136,0.15); opacity: 1; }
+  .flash-overlay.flash-b { background: rgba(255,51,102,0.15); opacity: 1; }
+</style>
+</head>
+<body>
+  <div class="flash-overlay" id="flash"></div>
+
+  <div class="header">
+    <h1>⌨ OPERATOR CONSOLE</h1>
+    <div class="status-badge status-waiting" id="statusBadge">WAITING</div>
+  </div>
+
+  <!-- SETUP -->
+  <div class="setup-panel" id="setupPanel">
+    <h2>Game Configuration</h2>
+    <div class="setup-grid">
+      <div class="setup-field">
+        <label>Player A Name</label>
+        <input id="cfgPlayerA" value="Player A" />
+      </div>
+      <div class="setup-field">
+        <label>Player B Name</label>
+        <input id="cfgPlayerB" value="Player B" />
+      </div>
+      <div class="setup-field">
+        <label>Duration (seconds)</label>
+        <input id="cfgDuration" type="number" value="90" />
+      </div>
+      <div class="setup-field">
+        <label>Lambda (goals/sec)</label>
+        <input id="cfgLambda" type="number" step="0.001" value="0.033" />
+      </div>
+    </div>
+    <div class="setup-actions">
+      <button class="btn-setup" onclick="applyConfig()">Apply Config</button>
+    </div>
+  </div>
+
+  <!-- SCOREBOARD -->
+  <div class="scoreboard">
+    <div class="player-side">
+      <div class="player-name" id="nameA">PLAYER A</div>
+      <div class="player-score score-a" id="scoreA">0</div>
+    </div>
+    <div class="score-divider">
+      <div class="vs">VS</div>
+      <div class="timer-display" id="timer">1:30</div>
+      <div class="fair-value-display">FV: <span id="fairValue">$0.50</span></div>
+    </div>
+    <div class="player-side">
+      <div class="player-name" id="nameB">PLAYER B</div>
+      <div class="player-score score-b" id="scoreB">0</div>
+    </div>
+  </div>
+
+  <!-- HOTKEYS -->
+  <div class="hotkeys">
+    <div class="hotkey-btn hk-goal-a" id="btnGoalA" onclick="sendAction('goalA')">
+      <div class="key">A</div>
+      <div class="action" id="goalALabel">Goal Player A</div>
+    </div>
+    <div class="hotkey-btn hk-goal-b" id="btnGoalB" onclick="sendAction('goalB')">
+      <div class="key">B</div>
+      <div class="action" id="goalBLabel">Goal Player B</div>
+    </div>
+    <div class="hotkey-btn hk-start" id="btnStart" onclick="sendAction('start')">
+      <div class="key">␣</div>
+      <div class="action">Start / Resume</div>
+    </div>
+    <div class="hotkey-btn hk-pause" id="btnPause" onclick="sendAction('pause')">
+      <div class="key">P</div>
+      <div class="action">Pause</div>
+    </div>
+    <div class="hotkey-btn hk-undo" id="btnUndo" onclick="sendAction('undo')">
+      <div class="key">Z</div>
+      <div class="action">Undo Last</div>
+    </div>
+    <div class="hotkey-btn hk-reset" id="btnReset" onclick="confirmReset()">
+      <div class="key">R</div>
+      <div class="action">Reset Game</div>
+    </div>
+  </div>
+
+  <!-- EVENT LOG -->
+  <div class="event-log" id="eventLog">
+    <h3>Event Log</h3>
+    <div id="eventList"></div>
+  </div>
+
+  <!-- CONNECTED TRADERS -->
+  <div class="traders-panel">
+    <h3>Connected Traders</h3>
+    <div id="tradersList"></div>
+  </div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const socket = io();
+let gameStatus = 'waiting';
+
+// ── Socket events ──
+socket.on('gameState', (state) => {
+  gameStatus = state.status;
+  document.getElementById('scoreA').textContent = state.scoreA;
+  document.getElementById('scoreB').textContent = state.scoreB;
+  document.getElementById('nameA').textContent = state.playerAName.toUpperCase();
+  document.getElementById('nameB').textContent = state.playerBName.toUpperCase();
+  document.getElementById('goalALabel').textContent = `Goal ${state.playerAName}`;
+  document.getElementById('goalBLabel').textContent = `Goal ${state.playerBName}`;
+
+  // Timer
+  const t = Math.max(0, state.timeRemaining);
+  const mins = Math.floor(t / 60);
+  const secs = Math.floor(t % 60);
+  const timerEl = document.getElementById('timer');
+  timerEl.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+  timerEl.className = 'timer-display' + (t < 10 ? ' critical' : t < 20 ? ' warning' : '');
+
+  // Fair value
+  document.getElementById('fairValue').textContent = `$${state.fairValue.toFixed(2)}`;
+
+  // Status badge
+  const badge = document.getElementById('statusBadge');
+  badge.textContent = state.status.toUpperCase().replace('-', ' ');
+  badge.className = `status-badge status-${state.status}`;
+
+  // Setup panel visibility
+  document.getElementById('setupPanel').style.display = (state.status === 'waiting') ? 'block' : 'none';
+
+  // Events
+  const eventList = document.getElementById('eventList');
+  eventList.innerHTML = '';
+  for (const evt of (state.events || []).slice().reverse()) {
+    const div = document.createElement('div');
+    div.className = 'event-item';
+    const timeSec = evt.time.toFixed(1);
+    div.innerHTML = `<span class="event-time">${timeSec}s</span><span class="event-desc">${evt.description}</span>`;
+    eventList.appendChild(div);
+  }
+});
+
+socket.on('leaderboard', (lb) => {
+  const el = document.getElementById('tradersList');
+  if (lb.length === 0) {
+    el.innerHTML = '<div style="font-size:0.75rem;color:#3a3f4b;">No traders connected</div>';
+    return;
+  }
+  el.innerHTML = lb.map(t => {
+    const pnlClass = t.pnl > 0 ? 'pnl-pos' : t.pnl < 0 ? 'pnl-neg' : 'pnl-zero';
+    const sign = t.pnl >= 0 ? '+' : '';
+    return `<div class="trader-row"><span class="name">${t.name}</span><span class="${pnlClass}">${sign}$${t.pnl.toFixed(2)} (${t.trades} trades)</span></div>`;
+  }).join('');
+});
+
+// ── Actions ──
+function sendAction(action) {
+  socket.emit('operatorAction', { action });
+
+  // Visual feedback
+  if (action === 'goalA') flashScreen('a');
+  if (action === 'goalB') flashScreen('b');
+}
+
+function applyConfig() {
+  socket.emit('operatorAction', {
+    action: 'configure',
+    playerAName: document.getElementById('cfgPlayerA').value || 'Player A',
+    playerBName: document.getElementById('cfgPlayerB').value || 'Player B',
+    duration: parseInt(document.getElementById('cfgDuration').value) || 90,
+    lambda: parseFloat(document.getElementById('cfgLambda').value) || 0.033,
+  });
+}
+
+function confirmReset() {
+  if (gameStatus === 'live' || gameStatus === 'paused') {
+    if (!confirm('Game is in progress. Are you sure you want to reset?')) return;
+  }
+  sendAction('reset');
+}
+
+function flashScreen(side) {
+  const el = document.getElementById('flash');
+  el.className = `flash-overlay flash-${side}`;
+  setTimeout(() => { el.className = 'flash-overlay'; }, 200);
+}
+
+// ── Keyboard shortcuts ──
+document.addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'INPUT') return;
+  const key = e.key.toLowerCase();
+
+  let btn = null;
+  if (key === 'a') { sendAction('goalA'); btn = document.getElementById('btnGoalA'); }
+  else if (key === 'b') { sendAction('goalB'); btn = document.getElementById('btnGoalB'); }
+  else if (key === ' ') { e.preventDefault(); sendAction('start'); btn = document.getElementById('btnStart'); }
+  else if (key === 'p') { sendAction('pause'); btn = document.getElementById('btnPause'); }
+  else if (key === 'z') { sendAction('undo'); btn = document.getElementById('btnUndo'); }
+  else if (key === 'r') { confirmReset(); btn = document.getElementById('btnReset'); }
+
+  if (btn) {
+    btn.classList.add('pressed');
+    setTimeout(() => btn.classList.remove('pressed'), 150);
+  }
+});
+</script>
+</body>
+</html>

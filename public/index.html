@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THE FLOOR — HFAC Quant</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=IBM+Plex+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #07090c;
+    color: #d0d4dc;
+    font-family: 'IBM Plex Sans', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .bg-grid {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background-image:
+      linear-gradient(rgba(0,255,136,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,255,136,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative; z-index: 1;
+    text-align: center;
+    padding: 2rem;
+  }
+
+  .logo-pre {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    color: #00ff88;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+    opacity: 0.7;
+  }
+
+  h1 {
+    font-family: 'Space Mono', monospace;
+    font-size: 4.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: #f0f2f5;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+  }
+
+  .subtitle {
+    font-size: 1rem;
+    font-weight: 300;
+    color: #6b7280;
+    margin-bottom: 3rem;
+    letter-spacing: 0.05em;
+  }
+
+  .buttons {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  a.btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    width: 220px;
+    height: 140px;
+    border: 1px solid #1e2430;
+    border-radius: 12px;
+    background: rgba(14,17,23,0.8);
+    backdrop-filter: blur(8px);
+    transition: all 0.25s ease;
+    cursor: pointer;
+  }
+
+  a.btn:hover {
+    border-color: #00ff88;
+    background: rgba(0,255,136,0.04);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0,255,136,0.08);
+  }
+
+  a.btn .icon {
+    font-size: 2.2rem;
+    margin-bottom: 0.6rem;
+  }
+
+  a.btn .label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #f0f2f5;
+    letter-spacing: 0.05em;
+  }
+
+  a.btn .desc {
+    font-size: 0.7rem;
+    color: #6b7280;
+    margin-top: 0.3rem;
+  }
+
+  .footer-note {
+    margin-top: 3rem;
+    font-size: 0.7rem;
+    color: #3a3f4b;
+    font-family: 'Space Mono', monospace;
+  }
+</style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="container">
+    <div class="logo-pre">HFAC Quant presents</div>
+    <h1>THE FLOOR</h1>
+    <div class="subtitle">Live Event Prediction Market</div>
+
+    <div class="buttons">
+      <a class="btn" href="/operator">
+        <div class="icon">⌨️</div>
+        <div class="label">OPERATOR</div>
+        <div class="desc">Broadcast desk</div>
+      </a>
+      <a class="btn" href="/trade">
+        <div class="icon">📈</div>
+        <div class="label">TRADE</div>
+        <div class="desc">Join the market</div>
+      </a>
+    </div>
+
+    <div class="footer-note">prediction markets · simulated exchange · educational use only</div>
+  </div>
+</body>
+</html>
