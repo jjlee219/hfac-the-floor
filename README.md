@@ -1,7 +1,5 @@
 # THE FLOOR — Live Event Prediction Market Game
 
-**HFAC Quant Education Session**
-
 A simulated prediction market exchange where participants trade contracts on the outcome of a live Head Soccer match. Bot market makers provide continuous liquidity using a Poisson/Skellam fair value model, and human traders try to profit by reading the game better than the bots.
 
 ---
